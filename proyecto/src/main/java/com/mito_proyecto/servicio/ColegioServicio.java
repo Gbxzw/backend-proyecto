@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Service
 public class ColegioServicio {
 
-    @Autowired
+  @Autowired
     private CursoRepositorio cursoRepository;
 
     @Autowired
@@ -29,6 +29,38 @@ public class ColegioServicio {
     @Autowired
     private RegistrarMatriculaRepositorio registrarMatriculaRepository;
 
+
+
+    //agregar nuevo estudiante
+
+public ResponseEntity<String> agregarNuevoEstudiante(Estudiante nuevoEstudiante){
+    //existe el estudiante
+    List<Estudiante> estudiantes =estudianteRepository.findByName(nuevoEstudiante.getNombres());
+
+    if(estudiantes!= null && !estudiantes.isEmpty()){
+
+        System.out.println("la alcaldia ya existe en la db");
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("el estudiante ya se encuentra registrado");
+    }else{
+        estudianteRepository.save(nuevoEstudiante);
+        return ResponseEntity.ok("estudiante agregado");
+
+    }
+
+}
+//agregar nuevo curso
+
+public ResponseEntity<String> agregarNuevoCurso(Curso nuevoCurso){
+    List<Curso> cursos = cursoRepository.findByName(nuevoCurso.getNombre());
+
+    if(cursos!=null && !cursos.isEmpty()){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("curso no encontrado");
+    }else{
+        cursoRepository.save(nuevoCurso);
+        return ResponseEntity.ok("curso agregado");
+    }
+
+}
 
     public List<Estudiante> ordenarEdad(List<Estudiante> estudiantes){
         return estudianteRepository.findAll().stream().sorted((e1,e2) -> Integer.compare(e1.getEdad() , e2.getEdad()))
@@ -54,6 +86,52 @@ public class ColegioServicio {
             e.printStackTrace();
             return Collections.emptyMap();
         }
+    }
+
+    //eliminar estudiante por nombre
+
+    public void deleteEstudiantePorNombre(String nombre){
+        List<Estudiante> estudiantes =estudianteRepository.findByName(nombre);
+
+        //filtramos los nombres de estudiante
+        for(Estudiante estudiante : estudiantes){
+            try{
+                estudianteRepository.delete(estudiante);
+                System.out.println("estudiante elimiando : " + estudiante);
+            }catch (Exception e){
+                System.out.println("error");
+                throw e;
+            }
+        }
+
+    }
+
+    //actualizar nombre del alumno
+    //optional para manejar valores que podrian ser nulos poder usar metodos como isPresent(), orElse
+    public Estudiante updateNombreEstudiante(Long id , String nombreNuevo){
+        Optional<Estudiante> optionalEstudiante = estudianteRepository.findById(id);
+
+        if(optionalEstudiante.isPresent()){
+            Estudiante  estudiante = optionalEstudiante.get();
+            estudiante.setNombres(nombreNuevo);
+
+            return estudianteRepository.save(estudiante);
+        }else{
+            throw new RuntimeException("estudiante no encontrado");
+        }
+    }
+
+    //actualizar nombre del curso
+
+    public Curso updateNombreCurso (Long id , String nuevoNombre){
+            Curso curso = cursoRepository.findById(id).orElse(null);
+
+            if(curso != null){
+                curso.setNombre(nuevoNombre);
+                return cursoRepository.save(curso);
+            }else{
+                throw new RuntimeException("estudiante no encontrado con el id : " + id);
+            }
     }
 
 }
