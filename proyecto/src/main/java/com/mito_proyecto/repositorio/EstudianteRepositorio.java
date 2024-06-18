@@ -12,4 +12,7 @@ public interface EstudianteRepositorio extends JpaRepository<Estudiante,Long> {
 
     List<Estudiante> ordenarPorEdad(List<Estudiante> estudiantes);
 
+    List<Estudiante> findByName(String nombre);
+
+
 }
